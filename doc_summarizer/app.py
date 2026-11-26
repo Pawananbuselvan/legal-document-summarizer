@@ -14,9 +14,9 @@ nltk.download('stopwords', quiet=True)
 app = Flask(__name__)
 
 # --- AI API SETUP ---
-# If you want to use the AI option, get a free API key from Google AI Studio and paste it here.
-GEMINI_API_KEY = "YOUR_API_KEY_HERE"
-genai.configure(api_key=GEMINI_API_KEY)
+# If you want to use the AI option.
+GEMINI_API_KEY = "API_KEY" #still not given api key value.
+genai.configure(api_key=API_KEY)
 
 # --- DATABASE SETUP ---
 def init_db():
