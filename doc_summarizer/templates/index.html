@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Document Summarizer</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: #f4f7f6; 
+            margin: 0; 
+            padding: 40px; 
+        }
+        h2 { color: #333; text-align: center; margin-bottom: 30px; }
+        
+        /* Flexbox Layout for Two Columns */
+        .layout-container {
+            display: flex;
+            gap: 30px;
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        /* Left Column: Controls */
+        .controls-panel {
+            flex: 1;
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        /* Right Column: Results */
+        .results-panel {
+            flex: 2;
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            min-height: 300px;
+        }
+
+        label { font-weight: bold; display: block; margin-top: 15px; margin-bottom: 5px; color: #555; }
+        input[type="file"], select { 
+            width: 100%; 
+            padding: 8px; 
+            margin-bottom: 15px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+        }
+        
+        button { 
+            width: 100%; 
+            background-color: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 12px; 
+            font-size: 16px;
+            cursor: pointer; 
+            border-radius: 5px; 
+            margin-top: 10px;
+        }
+        button:hover { background-color: #0056b3; }
+        
+        .summary-box { 
+            padding: 15px; 
+            background: #e9ecef; 
+            border-radius: 5px; 
+            height: 100%;
+            white-space: pre-wrap; /* Keeps paragraphs formatting intact for AI text */
+        }
+    </style>
+</head>
+<body>
+
+<h2>Enterprise Document Summarizer</h2>
+
+<div class="layout-container">
+    
+    <!-- LEFT PANEL -->
+    <div class="controls-panel">
+        <label for="pdfFile">1. Upload PDF Document</label>
+        <input type="file" id="pdfFile" accept="application/pdf">
+
+        <label for="engineSelect">2. Select Processing Engine</label>
+        <select id="engineSelect">
+            <option value="offline">Offline NLP (Math/Extractive)</option>
+            <option value="ai">Cloud AI (Generative)</option>
+        </select>
+
+        <label for="lengthSelect">3. Select Summary Length</label>
+        <select id="lengthSelect">
+            <option value="auto">General / Auto Summary</option>
+            <option value="one_page">Detailed 1-Page Summary</option>
+        </select>
+
+        <button onclick="processDocument()">Generate Summary</button>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="results-panel">
+        <h3 style="margin-top: 0; color: #333;">Output Result</h3>
+        <div class="summary-box" id="result">
+            <em>Your summary will appear here...</em>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    async function processDocument() {
+        let fileInput = document.getElementById("pdfFile").files[0];
+        let engineChoice = document.getElementById("engineSelect").value;
+        let lengthChoice = document.getElementById("lengthSelect").value;
+        let resultBox = document.getElementById("result");
+
+        if (!fileInput) {
+            alert("Please select a PDF file first.");
+            return;
+        }
+
+        resultBox.innerHTML = "<em>Analyzing document with " + engineChoice.toUpperCase() + " engine... please wait.</em>";
+
+        // Pack the file and the user's choices into a package to send to Python
+        let formData = new FormData();
+        formData.append("file", fileInput);
+        formData.append("engine", engineChoice);
+        formData.append("length", lengthChoice);
+
+        // Send to Flask Backend
+        let response = await fetch("/summarize", {
+            method: "POST",
+            body: formData
+        });
+
+        let data = await response.json();
+        
+        // Display result
+        if (data.summary) {
+            resultBox.innerHTML = "<strong>Document Summary:</strong><br><br>" + data.summary;
+        } else if (data.error) {
+            resultBox.innerHTML = "<span style='color:red;'>" + data.error + "</span>";
+        } else {
+            resultBox.innerHTML = "<span style='color:red;'>Server error occurred. Check VS Code terminal.</span>";
+        }
+    }
+</script>
+
+</body>
+</html>
